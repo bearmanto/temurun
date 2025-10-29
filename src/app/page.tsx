@@ -1,4 +1,5 @@
 import Hero from "./components/Hero";
+import ProductGrid from "./components/ProductGrid";
 
 export default function Home() {
   return (
@@ -6,9 +7,7 @@ export default function Home() {
       <Hero />
       <section id="products" className="space-y-3">
         <h2 className="text-xl font-semibold">What’s fresh</h2>
-        <p className="text-neutral-600">
-          Product grid coming next (Milestone 2B).
-        </p>
+        <ProductGrid />
       </section>
     </>
   );
