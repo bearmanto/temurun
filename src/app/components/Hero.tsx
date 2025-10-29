@@ -12,10 +12,10 @@ export default function Hero() {
           confirm your order manually via WhatsApp.
         </p>
         <div className="flex gap-3">
-          <Link href="#products" className="rounded border px-4 py-2">
+          <Link href="#products" className="rounded px-4 py-2 bg-brand text-white border border-brand hover:opacity-90">
             Shop now
           </Link>
-          <Link href="/cart" className="rounded border px-4 py-2">
+          <Link href="/cart" className="rounded px-4 py-2 border border-brand text-brand hover:bg-brand hover:text-white">
             View cart
           </Link>
         </div>

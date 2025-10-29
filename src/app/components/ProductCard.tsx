@@ -15,7 +15,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="mt-2">
           <Link
             href={`/product/${product.slug}`}
-            className="inline-block rounded border px-3 py-1 text-sm"
+            className="inline-block rounded border border-brand text-brand px-3 py-1 text-sm hover:bg-brand hover:text-white"
             aria-label={`View ${product.name}`}
           >
             View

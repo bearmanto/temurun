@@ -28,13 +28,13 @@ export default function Header() {
         </button>
 
         <nav className="hidden gap-4 sm:flex">
-          <Link href="/cart" className="hover:underline">
+          <Link href="/cart" className="hover:text-brand">
             Cart
           </Link>
-          <Link href="/checkout" className="hover:underline">
+          <Link href="/checkout" className="hover:text-brand">
             Checkout
           </Link>
-          <Link href="/admin" className="hover:underline">
+          <Link href="/admin" className="hover:text-brand">
             Admin
           </Link>
         </nav>

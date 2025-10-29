@@ -4,12 +4,31 @@
 :root {
   --background: #FAF7F2; /* warm off‑white */
   --foreground: #111111; /* near‑black text */
+
+  /* Pastel palette — web-safe approximations inspired by Pantone trends */
+  --brand: #A47864;   /* Mocha‑Mousse‑like anchor (approx) */
+  --peach: #F4C7B7;   /* Peach‑Fuzz‑like soft peach (approx) */
+  --powder: #BFD7EA;  /* powder blue */
+  --mint: #CDEDE6;    /* seafoam/mint */
+  --lilac: #DCCEF5;   /* soft lilac */
+  --butter: #FFF3C4;  /* pale butter yellow */
+  --stone: #E8E1DA;   /* warm stone */
+  --line: #E5DED6;    /* subtle border */
 }
 
 /* Tailwind v4 inline theme tokens */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--brand);
+  --color-peach: var(--peach);
+  --color-powder: var(--powder);
+  --color-mint: var(--mint);
+  --color-lilac: var(--lilac);
+  --color-butter: var(--butter);
+  --color-stone: var(--stone);
+  --color-line: var(--line);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -31,3 +50,8 @@ body {
 a {
   text-underline-offset: 2px;
 }
+a:hover { color: var(--brand); }
+
+/* Helpers */
+.border-line { border-color: var(--line); }
+.bg-card { background: #fff; }
