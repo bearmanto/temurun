@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getAllSlugs, getProductBySlug } from "@/lib/data";
 import { formatIDR } from "@/lib/types";
 import ProductGallery from "@/app/components/ProductGallery";
+import AddToCart from "@/app/components/AddToCart";
 
 type Params = { slug: string };
 
@@ -39,12 +40,16 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
           <p className="text-neutral-600">{product.description}</p>
 
           <div className="pt-2">
-            <button
-              type="button"
-              className="rounded px-4 py-2 bg-brand text-white border border-brand"
-            >
-              Add to cart (next)
-            </button>
+            {/* Client button to add this product to cart */}
+            {/* @ts-expect-error - product detail has extra fields; we pass only what's needed */}
+            <AddToCart
+              product={{
+                id: product.id,
+                slug: product.slug,
+                name: product.name,
+                price: product.price,
+              }}
+            />
           </div>
         </div>
       </div>

@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useCartStore, selectCount } from "@/lib/store/cart";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const count = useCartStore(selectCount);
 
   return (
     <header className="border-b">
@@ -28,8 +30,13 @@ export default function Header() {
         </button>
 
         <nav className="hidden gap-4 sm:flex">
-          <Link href="/cart" className="hover:text-brand">
+          <Link href="/cart" className="hover:text-brand inline-flex items-center gap-1">
             Cart
+            {count > 0 && (
+              <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-brand px-1.5 py-0.5 text-[11px] leading-none text-white">
+                {count}
+              </span>
+            )}
           </Link>
           <Link href="/checkout" className="hover:text-brand">
             Checkout
@@ -50,7 +57,7 @@ export default function Header() {
                   className="block py-2"
                   onClick={() => setOpen(false)}
                 >
-                  Cart
+                  Cart {count > 0 ? `(${count})` : ""}
                 </Link>
               </li>
               <li>

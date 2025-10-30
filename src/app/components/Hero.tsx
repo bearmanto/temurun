@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section className="py-10 sm:py-14">
+    <section className="py-12 sm:py-16 border-b border-line bg-transparent">
       <div className="space-y-4">
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
           Welcome to Temurun
@@ -12,7 +12,7 @@ export default function Hero() {
           confirm your order manually via WhatsApp.
         </p>
         <div className="flex gap-3">
-          <Link href="#products" className="rounded px-4 py-2 bg-brand text-white border border-brand hover:opacity-90">
+          <Link href="#products" className="rounded px-4 py-2 border border-brand text-brand hover:bg-brand hover:text-white">
             Shop now
           </Link>
           <Link href="/cart" className="rounded px-4 py-2 border border-brand text-brand hover:bg-brand hover:text-white">

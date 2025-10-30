@@ -59,3 +59,6 @@ a:hover { color: var(--brand); }
 /* Accessibility & polish */
 ::selection { background: var(--peach); color: var(--foreground); }
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+/* Subtle rules for minimalist sections */
+hr { border-color: var(--line); }
