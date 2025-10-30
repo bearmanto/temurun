@@ -4,6 +4,7 @@ export interface Product {
   name: string;
   price: number; // in IDR
   image?: string; // optional image URL (we'll wire real images later)
+  is_new?: boolean; // optional "New" badge
 }
 
 /** Format number to Indonesian Rupiah (no cents). */

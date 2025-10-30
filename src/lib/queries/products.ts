@@ -1,14 +1,11 @@
-
-
 import { getSupabase } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
 import { getAllProducts, getProductBySlug, type ProductDetail } from "@/lib/data";
 
 /**
- * DB schema expectations (for later):
- * - table: products { id uuid/text, slug text, name text, price int, description text }
+ * DB schema expectations:
+ * - table: products { id uuid/text, slug text, name text, price int, description text, is_new bool }
  * - table: product_images { product_id fk, url text, sort int }
- * We'll keep queries minimal and tolerant.
  */
 
 export async function listProducts(): Promise<Product[]> {
@@ -21,12 +18,13 @@ export async function listProducts(): Promise<Product[]> {
       name,
       price,
       image: images?.[0],
+      is_new: false,
     }));
   }
 
   const { data, error } = await sb
     .from("products")
-    .select("id, slug, name, price")
+    .select("id, slug, name, price, is_new, product_images(url, sort)")
     .order("name", { ascending: true });
 
   if (error || !data) {
@@ -37,16 +35,28 @@ export async function listProducts(): Promise<Product[]> {
       name,
       price,
       image: images?.[0],
+      is_new: false,
     }));
   }
 
-  // Map to our Product type
-  return data.map((row: any) => ({
-    id: String(row.id),
-    slug: String(row.slug),
-    name: String(row.name),
-    price: Number(row.price) || 0,
-  })) as Product[];
+  // Order nested images by sort if provided
+  // @ts-ignore - supabase-js typing for foreignTable key
+  await sb.from("products").select("").order("sort", { ascending: true, foreignTable: "product_images" });
+
+  return data.map((row: any) => {
+    const firstImg = Array.isArray(row.product_images) && row.product_images.length
+      ? String(row.product_images[0].url)
+      : undefined;
+
+    return {
+      id: String(row.id),
+      slug: String(row.slug),
+      name: String(row.name),
+      price: Number(row.price) || 0,
+      is_new: Boolean(row.is_new),
+      image: firstImg,
+    } as Product;
+  });
 }
 
 export async function fetchProductBySlug(slug: string): Promise<ProductDetail | undefined> {
@@ -55,7 +65,7 @@ export async function fetchProductBySlug(slug: string): Promise<ProductDetail | 
 
   const { data, error } = await sb
     .from("products")
-    .select("id, slug, name, price, description")
+    .select("id, slug, name, price, description, is_new")
     .eq("slug", slug)
     .maybeSingle();
 
