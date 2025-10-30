@@ -13,12 +13,16 @@ export default function CartPage() {
       <section className="space-y-4">
         <h1 className="text-2xl font-semibold">Cart</h1>
         <p className="text-neutral-600">
-          Your cart is empty.{" "}
-          <Link href="/" className="underline">
-            Continue shopping
-          </Link>
-          .
+          Your cart is empty. Browse our latest bakes and add something you like.
         </p>
+        <div>
+          <Link
+            href="/#products"
+            className="rounded border border-brand px-4 py-2 text-brand hover:bg-brand hover:text-white"
+          >
+            Shop now
+          </Link>
+        </div>
       </section>
     );
   }

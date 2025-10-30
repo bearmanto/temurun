@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getAllSlugs, getProductBySlug } from "@/lib/data";
+import { listSlugs, fetchProductBySlug } from "@/lib/queries/products";
 import { formatIDR } from "@/lib/types";
 import ProductGallery from "@/app/components/ProductGallery";
 import AddToCart from "@/app/components/AddToCart";
 
 type Params = { slug: string };
 
-export function generateStaticParams() {
-  return getAllSlugs().map((slug) => ({ slug }));
+export async function generateStaticParams() {
+  const slugs = await listSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
-  if (!product) {
-    return { title: "Product — Temurun" };
-  }
+  const product = await fetchProductBySlug(slug);
+  if (!product) return { title: "Product — Temurun" };
   return {
     title: `${product.name} — Temurun`,
     description: product.description,
@@ -25,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 export default async function ProductPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
+  const product = await fetchProductBySlug(slug);
   if (!product) return notFound();
 
   return (

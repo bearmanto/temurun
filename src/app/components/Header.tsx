@@ -1,12 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCartStore, selectCount } from "@/lib/store/cart";
+import MiniCart from "./MiniCart";
 
 export default function Header() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // mobile nav
+  const [miniOpen, setMiniOpen] = useState(false); // mini cart
   const count = useCartStore(selectCount);
+
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!wrapRef.current) return;
+      if (!wrapRef.current.contains(e.target as Node)) {
+        setMiniOpen(false);
+      }
+    }
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") setMiniOpen(false);
+    }
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, []);
 
   return (
     <header className="border-b">
@@ -21,23 +43,37 @@ export default function Header() {
           className="sm:hidden inline-flex items-center justify-center rounded px-2 py-1"
           onClick={() => setOpen((v) => !v)}
         >
-          <span className="i-[--icon]" aria-hidden="true">
-            {/* simple hamburger using spans to avoid external icons */}
-            <span className="block h-0.5 w-5 bg-current mb-1" />
-            <span className="block h-0.5 w-5 bg-current mb-1" />
+          <span aria-hidden="true">
+            <span className="mb-1 block h-0.5 w-5 bg-current" />
+            <span className="mb-1 block h-0.5 w-5 bg-current" />
             <span className="block h-0.5 w-5 bg-current" />
           </span>
         </button>
 
-        <nav className="hidden gap-4 sm:flex">
-          <Link href="/cart" className="hover:text-brand inline-flex items-center gap-1">
-            Cart
-            {count > 0 && (
-              <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-brand px-1.5 py-0.5 text-[11px] leading-none text-white">
-                {count}
-              </span>
+        <nav className="hidden gap-4 sm:flex items-center" ref={wrapRef}>
+          <div className="relative">
+            <button
+              type="button"
+              className="hover:text-brand inline-flex items-center gap-1"
+              aria-expanded={miniOpen}
+              aria-haspopup="dialog"
+              onClick={() => setMiniOpen((v) => !v)}
+            >
+              Cart
+              {count > 0 && (
+                <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-brand px-1.5 py-0.5 text-[11px] leading-none text-white">
+                  {count}
+                </span>
+              )}
+            </button>
+
+            {miniOpen && (
+              <div className="absolute right-0 top-full z-50 mt-2">
+                <MiniCart onClose={() => setMiniOpen(false)} />
+              </div>
             )}
-          </Link>
+          </div>
+
           <Link href="/checkout" className="hover:text-brand">
             Checkout
           </Link>

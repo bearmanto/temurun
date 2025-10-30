@@ -28,7 +28,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-dvh flex flex-col`}>
         <Header />
-        <main className="grow mx-auto w-full max-w-screen-md px-4 py-6">
+        <main className="grow mx-auto w-full max-w-screen-md px-4 py-8 sm:py-10">
           {children}
         </main>
         <Footer />

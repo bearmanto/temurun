@@ -1,8 +1,8 @@
 import ProductCard from "./ProductCard";
-import { getAllProducts } from "@/lib/data";
+import { listProducts } from "@/lib/queries/products";
 
-export default function ProductGrid() {
-  const products = getAllProducts();
+export default async function ProductGrid() {
+  const products = await listProducts();
 
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
