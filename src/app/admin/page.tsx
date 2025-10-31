@@ -14,6 +14,7 @@ export default function AdminPage() {
         <li>View new orders and update their status.</li>
         <li>View and edit products (limited fields at first).</li>
         <li><a href="/admin/orders" className="underline">View orders</a></li>
+        <li><a href="/admin/products" className="underline">View products</a></li>
       </ul>
       <p className="text-sm text-neutral-500">
         Admin MVP is planned for Milestone 5.

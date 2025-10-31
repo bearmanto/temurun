@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
 import { getOrderById } from "@/lib/queries/orders";
 import { formatIDR } from "@/lib/types";
+import { getAdminSupabase } from "@/lib/supabase/admin";
 
 type Params = { id: string };
 
@@ -15,6 +17,19 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const { id } = await params;
   const order = await getOrderById(id);
   if (!order) return notFound();
+
+  async function updateStatus(formData: FormData) {
+    "use server";
+    const sb = getAdminSupabase();
+    if (!sb) return;
+
+    const next = String(formData.get("status") || "").toLowerCase();
+    const allowed = ["pending", "confirmed", "delivered", "cancelled"];
+    if (!allowed.includes(next)) return;
+
+    await sb.from("orders").update({ status: next }).eq("id", id);
+    revalidatePath(`/admin/orders/${id}`);
+  }
 
   return (
     <section className="space-y-4">
@@ -68,6 +83,27 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             <span>Total</span>
             <span>{formatIDR(order.total)}</span>
           </div>
+
+          <hr />
+          <form action={updateStatus} className="pt-1 space-y-2">
+            <label className="block text-sm font-medium">Update status</label>
+            <select
+              name="status"
+              defaultValue={order.status}
+              className="w-full rounded border px-2 py-1 text-sm"
+            >
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="delivered">Delivered</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <button
+              type="submit"
+              className="inline-flex items-center rounded border border-brand px-3 py-1 text-sm text-brand hover:bg-brand hover:text-white"
+            >
+              Save status
+            </button>
+          </form>
         </aside>
       </div>
     </section>

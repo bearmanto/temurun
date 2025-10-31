@@ -119,3 +119,17 @@ begin
     create policy "order_items_insert" on public.order_items for insert with check (true);
   end if;
 end $$;
+
+-- Constrain orders.status to allowed values (idempotent)
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'orders_status_check'
+      and conrelid = 'public.orders'::regclass
+  ) then
+    alter table public.orders
+      add constraint orders_status_check
+      check (status in ('pending','confirmed','delivered','cancelled'));
+  end if;
+end $$;

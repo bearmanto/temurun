@@ -39,14 +39,11 @@ export async function listProducts(): Promise<Product[]> {
     }));
   }
 
-  // Order nested images by sort if provided
-  // @ts-ignore - supabase-js typing for foreignTable key
-  await sb.from("products").select("").order("sort", { ascending: true, foreignTable: "product_images" });
-
   return data.map((row: any) => {
-    const firstImg = Array.isArray(row.product_images) && row.product_images.length
-      ? String(row.product_images[0].url)
-      : undefined;
+    const firstImg =
+      Array.isArray(row.product_images) && row.product_images.length
+        ? String(row.product_images[0].url)
+        : undefined;
 
     return {
       id: String(row.id),
