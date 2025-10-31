@@ -3,6 +3,8 @@ import CheckoutForm from "@/app/components/CheckoutForm";
 import { getSupabase } from "@/lib/supabase/server";
 import { fetchProductBySlug } from "@/lib/queries/products";
 import { formatIDR } from "@/lib/types";
+import { WA_NUMBER } from "@/lib/env";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Checkout — Temurun",
@@ -116,9 +118,11 @@ async function placeOrder(_: unknown, formData: FormData): Promise<ServerResult>
     .filter(Boolean)
     .join("\n");
 
-  const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  const number = String(WA_NUMBER || "+6281111111").replace(/[^\d]/g, "");
+  const waBase = number ? `https://wa.me/${number}` : "https://wa.me";
+  const waUrl = `${waBase}?text=${encodeURIComponent(msg)}`;
 
-  return { ok: true, code: orderRow.code as string, waUrl };
+  redirect(`/order/${orderRow.code as string}`);
 }
 
 export default function CheckoutPage() {

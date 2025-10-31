@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { useCartStore, selectItems } from "@/lib/store/cart";
 
@@ -28,13 +28,6 @@ export default function CheckoutForm({
 }) {
   const items = useCartStore(selectItems);
   const [state, formAction] = useActionState<ServerResult, FormData>(action, { ok: false, error: "" } as any);
-
-  // Clear cart on success
-  useEffect(() => {
-    if (state && "ok" in state && state.ok) {
-      useCartStore.getState().clear();
-    }
-  }, [state]);
 
   const hasItems = items.length > 0;
 
@@ -117,6 +110,10 @@ export default function CheckoutForm({
               href={state.waUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => {
+                // clear cart only when the user proceeds to WhatsApp
+                useCartStore.getState().clear();
+              }}
               className="inline-block rounded border border-brand px-3 py-1 text-brand hover:bg-brand hover:text-white"
             >
               Confirm via WhatsApp
