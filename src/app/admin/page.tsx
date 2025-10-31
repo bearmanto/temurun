@@ -13,6 +13,7 @@ export default function AdminPage() {
       <ul className="list-disc pl-5 text-neutral-700">
         <li>View new orders and update their status.</li>
         <li>View and edit products (limited fields at first).</li>
+        <li><a href="/admin/orders" className="underline">View orders</a></li>
       </ul>
       <p className="text-sm text-neutral-500">
         Admin MVP is planned for Milestone 5.

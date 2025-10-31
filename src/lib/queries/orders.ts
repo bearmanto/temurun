@@ -46,3 +46,38 @@ export async function getOrderByCode(code: string): Promise<OrderWithItems | nul
 
   return { ...(order as OrderRow), items: items as OrderItemRow[] };
 }
+
+export async function listOrders(limit = 100): Promise<OrderRow[]> {
+  const sb = getSupabase();
+  if (!sb) return [];
+  const { data, error } = await sb
+    .from("orders")
+    .select("id, code, customer_name, phone, address, notes, subtotal, total, status, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  return data as OrderRow[];
+}
+
+export async function getOrderById(id: string): Promise<OrderWithItems | null> {
+  const sb = getSupabase();
+  if (!sb) return null;
+
+  const { data: order, error } = await sb
+    .from("orders")
+    .select("id, code, customer_name, phone, address, notes, subtotal, total, status, created_at")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error || !order) return null;
+
+  const { data: items, error: itemsErr } = await sb
+    .from("order_items")
+    .select("id, order_id, product_id, slug, name, price, qty")
+    .eq("order_id", order.id)
+    .order("id", { ascending: true });
+
+  if (itemsErr || !items) return { ...(order as OrderRow), items: [] };
+
+  return { ...(order as OrderRow), items: items as OrderItemRow[] };
+}
