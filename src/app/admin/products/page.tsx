@@ -21,6 +21,23 @@ async function toggleIsNew(formData: FormData) {
   revalidatePath("/admin/products");
 }
 
+async function updatePrice(formData: FormData) {
+  "use server";
+  const id = String(formData.get("id") || "");
+  const raw = String(formData.get("price") || "").trim();
+  if (!id || !raw) return;
+
+  // Parse as integer IDR
+  const parsed = parseInt(raw.replace(/[^\d]/g, ""), 10);
+  const price = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+
+  const sb = getAdminSupabase();
+  if (!sb) return;
+
+  await sb.from("products").update({ price }).eq("id", id);
+  revalidatePath("/admin/products");
+}
+
 export default async function AdminProductsPage() {
   const products = await listProducts();
 
@@ -52,7 +69,31 @@ export default async function AdminProductsPage() {
                   <tr key={p.id} className="border-t">
                     <td className="px-3 py-2">{p.name}</td>
                     <td className="px-3 py-2">{p.slug}</td>
-                    <td className="px-3 py-2 text-right">{formatIDR(p.price)}</td>
+                    <td className="px-3 py-2 text-right">
+                      <div className="inline-flex items-center gap-2">
+                        <span className="whitespace-nowrap">{formatIDR(p.price)}</span>
+                        <form action={updatePrice} className="inline-flex items-center gap-1">
+                          <input type="hidden" name="id" value={p.id} />
+                          <input
+                            type="number"
+                            name="price"
+                            min={0}
+                            step={1000}
+                            defaultValue={p.price}
+                            className="w-28 rounded border px-2 py-1 text-right"
+                            aria-label={`Set price for ${p.name}`}
+                          />
+                          <button
+                            type="submit"
+                            className="rounded border px-2 py-1 text-xs hover:text-brand"
+                            aria-label={`Save price for ${p.name}`}
+                            title="Save"
+                          >
+                            Save
+                          </button>
+                        </form>
+                      </div>
+                    </td>
                     <td className="px-3 py-2">
                       {p.is_new ? (
                         <span className="inline-block rounded-full bg-brand/90 px-2 py-0.5 text-xs text-white">New</span>
