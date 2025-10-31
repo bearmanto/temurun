@@ -133,3 +133,26 @@ begin
       check (status in ('pending','confirmed','delivered','cancelled'));
   end if;
 end $$;
+
+-- ===========================================
+-- SETTINGS (read-only public; updates via service role)
+-- ===========================================
+create table if not exists public.settings (
+  key text primary key,
+  value text not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.settings enable row level security;
+
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='settings' and policyname='settings_select') then
+    create policy "settings_select" on public.settings for select using (true);
+  end if;
+end $$;
+
+-- Seed default WA number (safe to re-run)
+insert into public.settings (key, value)
+values ('wa_number', '+6281111111')
+on conflict (key) do nothing;

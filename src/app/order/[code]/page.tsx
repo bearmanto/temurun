@@ -2,20 +2,23 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getOrderByCode } from "@/lib/queries/orders";
 import { formatIDR } from "@/lib/types";
-import { WA_NUMBER } from "@/lib/env";
+import { getWaNumber } from "@/lib/queries/settings";
 import ConfirmWhatsAppButton from "@/app/components/ConfirmWhatsAppButton";
 
 type Params = { code: string };
 
-function buildWhatsAppUrl(order: {
-  code: string;
-  items: { name: string; price: number; qty: number }[];
-  total: number;
-  customer_name: string;
-  phone: string;
-  address: string;
-  notes?: string;
-}) {
+function buildWhatsAppUrl(
+  order: {
+    code: string;
+    items: { name: string; price: number; qty: number }[];
+    total: number;
+    customer_name: string;
+    phone: string;
+    address: string;
+    notes?: string;
+  },
+  waNumber: string
+) {
   const lines = order.items
     .map((it) => `${it.qty}× ${it.name} — ${formatIDR(it.price * it.qty)}`)
     .join("\n");
@@ -32,7 +35,7 @@ function buildWhatsAppUrl(order: {
     .filter(Boolean)
     .join("\n");
 
-  const number = String(WA_NUMBER || "+6281111111").replace(/[^\d]/g, "");
+  const number = String(waNumber || "+6281111111").replace(/[^\d]/g, "");
   const waBase = number ? `https://wa.me/${number}` : "https://wa.me";
   return `${waBase}?text=${encodeURIComponent(msg)}`;
 }
@@ -48,15 +51,19 @@ export default async function OrderSummaryPage({ params }: { params: Promise<Par
 
   if (!order) return notFound();
 
-  const waUrl = buildWhatsAppUrl({
-    code: order.code,
-    items: order.items.map((it) => ({ name: it.name, price: it.price, qty: it.qty })),
-    total: order.total,
-    customer_name: order.customer_name,
-    phone: order.phone,
-    address: order.address,
-    notes: order.notes,
-  });
+  const waNumber = await getWaNumber();
+  const waUrl = buildWhatsAppUrl(
+    {
+      code: order.code,
+      items: order.items.map((it) => ({ name: it.name, price: it.price, qty: it.qty })),
+      total: order.total,
+      customer_name: order.customer_name,
+      phone: order.phone,
+      address: order.address,
+      notes: order.notes,
+    },
+    waNumber
+  );
 
   return (
     <section className="space-y-6">
