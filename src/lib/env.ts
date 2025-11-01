@@ -11,3 +11,5 @@ export const WA_NUMBER = process.env.NEXT_PUBLIC_WA_NUMBER || "+6281111111";
 
 export const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 export const HAS_SERVICE_ROLE = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
+
+export const SUPABASE_BUCKET = process.env.NEXT_PUBLIC_SUPABASE_BUCKET || "product-images";

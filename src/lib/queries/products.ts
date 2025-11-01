@@ -1,6 +1,7 @@
 import { getSupabase } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
 import { getAllProducts, getProductBySlug, type ProductDetail } from "@/lib/data";
+import { resolveStorageUrl } from "@/lib/storage";
 
 /**
  * DB schema expectations:
@@ -40,10 +41,10 @@ export async function listProducts(): Promise<Product[]> {
   }
 
   return data.map((row: any) => {
-    const firstImg =
-      Array.isArray(row.product_images) && row.product_images.length
-        ? String(row.product_images[0].url)
-        : undefined;
+    const imgs = Array.isArray(row.product_images) ? row.product_images.slice() : [];
+    imgs.sort((a: any, b: any) => (a?.sort ?? 0) - (b?.sort ?? 0));
+    const first = imgs.length ? String(imgs[0].url) : undefined;
+    const resolved = resolveStorageUrl(first);
 
     return {
       id: String(row.id),
@@ -51,7 +52,7 @@ export async function listProducts(): Promise<Product[]> {
       name: String(row.name),
       price: Number(row.price) || 0,
       is_new: Boolean(row.is_new),
-      image: firstImg,
+      image: resolved,
     } as Product;
   });
 }
@@ -75,13 +76,17 @@ export async function fetchProductBySlug(slug: string): Promise<ProductDetail | 
     .eq("product_id", data.id)
     .order("sort", { ascending: true });
 
+  const resolvedImages = (imgs || [])
+    .map((i: any) => resolveStorageUrl(String(i.url)))
+    .filter((u: string | undefined): u is string => Boolean(u));
+
   return {
     id: String(data.id),
     slug: String(data.slug),
     name: String(data.name),
     price: Number(data.price) || 0,
     description: String(data.description || ""),
-    images: (imgs || []).map((i: any) => String(i.url)),
+    images: resolvedImages,
   };
 }
 
