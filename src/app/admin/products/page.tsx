@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
-import { listProducts } from "@/lib/queries/products";
+import { listProductsAdmin } from "@/lib/queries/products";
 import { getAdminSupabase } from "@/lib/supabase/admin";
 import { formatIDR } from "@/lib/types";
 
@@ -39,7 +39,7 @@ async function updatePrice(formData: FormData) {
 }
 
 export default async function AdminProductsPage() {
-  const products = await listProducts();
+  const products = await listProductsAdmin();
 
   return (
     <section className="space-y-4">
@@ -55,19 +55,40 @@ export default async function AdminProductsPage() {
           <table className="min-w-full text-sm">
             <thead className="bg-neutral-50 text-neutral-700">
               <tr>
+                <th className="px-3 py-2 text-left">Cover</th>
+                <th className="px-3 py-2 text-left">ID</th>
                 <th className="px-3 py-2 text-left">Name</th>
                 <th className="px-3 py-2 text-left">Slug</th>
                 <th className="px-3 py-2 text-right">Price</th>
+                <th className="px-3 py-2 text-left">Images</th>
                 <th className="px-3 py-2 text-left">Badge</th>
                 <th className="px-3 py-2 text-left">Action</th>
               </tr>
             </thead>
             <tbody>
               {products.map((p) => {
-                const next = !p.is_new;
                 return (
-                  <tr key={p.id} className="border-t">
-                    <td className="px-3 py-2">{p.name}</td>
+                  <tr key={p.id} className="border-t align-top">
+                    <td className="px-3 py-2">
+                      {p.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.image} alt="" className="h-10 w-10 rounded border object-cover" />
+                      ) : (
+                        <div className="h-10 w-10 rounded border bg-neutral-100" aria-hidden="true" />
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      <code className="text-xs text-neutral-500">{p.id}</code>
+                    </td>
+                    <td className="px-3 py-2">
+                      <Link
+                        href={`/admin/products/${p.id}/images`}
+                        className="underline underline-offset-2 hover:text-brand"
+                        title="Manage images"
+                      >
+                        {p.name}
+                      </Link>
+                    </td>
                     <td className="px-3 py-2">{p.slug}</td>
                     <td className="px-3 py-2 text-right">
                       <div className="inline-flex items-center gap-2">
@@ -94,6 +115,7 @@ export default async function AdminProductsPage() {
                         </form>
                       </div>
                     </td>
+                    <td className="px-3 py-2 whitespace-nowrap">{p.imagesCount} {p.imagesCount === 1 ? "img" : "imgs"}</td>
                     <td className="px-3 py-2">
                       {p.is_new ? (
                         <span className="inline-block rounded-full bg-brand/90 px-2 py-0.5 text-xs text-white">New</span>
@@ -102,16 +124,25 @@ export default async function AdminProductsPage() {
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <form action={toggleIsNew}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <input type="hidden" name="next" value={String(next)} />
-                        <button
-                          type="submit"
-                          className="rounded border border-brand px-3 py-1 text-xs text-brand hover:bg-brand hover:text-white"
+                      <div className="flex flex-wrap items-center gap-2">
+                        <form action={toggleIsNew}>
+                          <input type="hidden" name="id" value={p.id} />
+                          <input type="hidden" name="next" value={String(!p.is_new)} />
+                          <button
+                            type="submit"
+                            className="rounded border border-brand px-3 py-1 text-xs text-brand hover:bg-brand hover:text-white"
+                          >
+                            {p.is_new ? "Remove New badge" : "Mark as New"}
+                          </button>
+                        </form>
+                        <Link
+                          href={`/admin/products/${p.id}/images`}
+                          className="rounded border px-3 py-1 text-xs hover:text-brand"
+                          title="Manage images"
                         >
-                          {p.is_new ? "Remove New badge" : "Mark as New"}
-                        </button>
-                      </form>
+                          Images
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );

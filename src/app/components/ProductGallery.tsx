@@ -29,17 +29,25 @@ export default function ProductGallery({
         )}
       </div>
       <div className="flex gap-2">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            aria-label={`Show image ${i + 1}`}
-            onClick={() => setIndex(i)}
-            className={`h-12 w-12 rounded border bg-neutral-100 ${
-              i === safeIndex ? "ring-2 ring-brand" : ""
-            }`}
-          />
-        ))}
+        {slides.map((src, i) => {
+          const has = Boolean(src);
+          return (
+            <button
+              key={i}
+              type="button"
+              aria-label={`Show image ${i + 1}`}
+              onClick={() => setIndex(i)}
+              className={`h-12 w-12 overflow-hidden rounded border ${i === safeIndex ? "ring-2 ring-brand" : ""}`}
+            >
+              {has ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={src as string} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <span className="block h-full w-full bg-neutral-100" aria-hidden="true" />
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
