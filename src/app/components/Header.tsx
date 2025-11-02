@@ -4,8 +4,12 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useCartStore, selectCount } from "@/lib/store/cart";
 import MiniCart from "./MiniCart";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/admin")) return null;
+
   const [open, setOpen] = useState(false); // mobile nav
   const [miniOpen, setMiniOpen] = useState(false); // mini cart
   const count = useCartStore(selectCount);
@@ -31,7 +35,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="border-b">
+    <header className="border-b border-line">
       <div className="mx-auto flex h-14 max-w-screen-md items-center justify-between px-4">
         <Link href="/" className="font-semibold tracking-tight">
           Temurun
@@ -51,6 +55,9 @@ export default function Header() {
         </button>
 
         <nav className="hidden gap-4 sm:flex items-center" ref={wrapRef}>
+          <Link href="/#products" className="hover:text-brand">
+            Products
+          </Link>
           <div className="relative">
             <button
               type="button"
@@ -87,6 +94,15 @@ export default function Header() {
         <nav className="sm:hidden border-t">
           <div className="mx-auto max-w-screen-md px-4 py-2">
             <ul className="flex flex-col">
+              <li>
+                <Link
+                  href="/#products"
+                  className="block py-2"
+                  onClick={() => setOpen(false)}
+                >
+                  Products
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/cart"

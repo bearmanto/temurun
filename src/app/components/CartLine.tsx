@@ -14,7 +14,7 @@ export default function CartLine({ item }: { item: CartItem }) {
     <div className="flex items-start justify-between gap-3 py-3 border-b border-line">
       <div className="flex items-start gap-3">
         {/* thumbnail placeholder */}
-        <div className="size-16 rounded border bg-neutral-100" aria-hidden="true" />
+        <div className="h-16 w-16 rounded border border-line bg-neutral-100" aria-hidden="true" />
         <div>
           <Link href={`/product/${item.slug}`} className="font-medium hover:text-brand">
             {item.name}
@@ -31,7 +31,7 @@ export default function CartLine({ item }: { item: CartItem }) {
         <button
           type="button"
           onClick={() => remove(item.id)}
-          className="mt-2 text-sm underline"
+          className="mt-2 text-sm underline hover:text-brand"
         >
           Remove
         </button>

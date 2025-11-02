@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import Header from "./components/Header";
 
 export const metadata: Metadata = {
   title: "Temurun",
@@ -13,7 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-dvh antialiased">{children}</body>
+      <body className="min-h-dvh antialiased">
+        {/* Global storefront header; Header hides itself on /admin */}
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }

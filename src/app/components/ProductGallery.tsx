@@ -16,7 +16,7 @@ export default function ProductGallery({
 
   return (
     <div className="space-y-3">
-      <div className="aspect-square w-full rounded border bg-neutral-100 flex items-center justify-center">
+      <div className="aspect-square w-full rounded border border-line bg-neutral-100 flex items-center justify-center">
         {hasImage ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -37,7 +37,7 @@ export default function ProductGallery({
               type="button"
               aria-label={`Show image ${i + 1}`}
               onClick={() => setIndex(i)}
-              className={`h-12 w-12 overflow-hidden rounded border ${i === safeIndex ? "ring-2 ring-brand" : ""}`}
+              className={`h-12 w-12 overflow-hidden rounded border border-line ${i === safeIndex ? "ring-2 ring-brand" : ""}`}
             >
               {has ? (
                 // eslint-disable-next-line @next/next/no-img-element

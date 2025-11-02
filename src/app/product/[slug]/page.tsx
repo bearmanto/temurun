@@ -28,27 +28,29 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   if (!product) return notFound();
 
   return (
-    <section className="space-y-6">
-      <div className="grid gap-6 sm:grid-cols-2">
-        <ProductGallery images={product.images} name={product.name} />
-        <div className="space-y-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {product.name}
-          </h1>
-          <p className="text-lg">{formatIDR(product.price)}</p>
-          <p className="text-neutral-600">{product.description}</p>
+    <section className="py-6">
+      <div className="mx-auto max-w-screen-md px-4">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <ProductGallery images={product.images} name={product.name} />
+          <div className="space-y-4">
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+              {product.name}
+            </h1>
+            <p className="text-xl font-medium">{formatIDR(product.price)}</p>
+            <p className="text-neutral-700">{product.description}</p>
 
-          <div className="pt-2">
-            {/* Client button to add this product to cart */}
-            {/* @ts-expect-error - product detail has extra fields; we pass only what's needed */}
-            <AddToCart
-              product={{
-                id: product.id,
-                slug: product.slug,
-                name: product.name,
-                price: product.price,
-              }}
-            />
+            <div className="pt-2">
+              {/* Client button to add this product to cart */}
+              {/* @ts-expect-error - product detail has extra fields; we pass only what's needed */}
+              <AddToCart
+                product={{
+                  id: product.id,
+                  slug: product.slug,
+                  name: product.name,
+                  price: product.price,
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
