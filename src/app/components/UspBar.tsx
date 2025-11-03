@@ -1,3 +1,5 @@
+import { getUspTexts } from "@/lib/queries/settings";
+
 function IconDelivery(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
@@ -36,12 +38,13 @@ function IconCalendar(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-export default function UspBar() {
+export default async function UspBar() {
+  const usp = await getUspTexts();
   const items = [
-    { icon: IconFresh, title: "Freshly baked", text: "Made to order, never shelf‑worn." },
-    { icon: IconDelivery, title: "Delivery only", text: "Straight to your door." },
-    { icon: IconWhatsApp, title: "1‑tap confirm", text: "Order via WhatsApp." },
-    { icon: IconCalendar, title: "Pre‑order window", text: "Choose your date (14 days)." },
+    { icon: IconFresh, title: "Freshly baked", text: usp.fresh },
+    { icon: IconDelivery, title: "Delivery only", text: usp.delivery },
+    { icon: IconWhatsApp, title: "1‑tap confirm", text: usp.whatsapp },
+    { icon: IconCalendar, title: "Pre‑order window", text: usp.preorder },
   ];
 
   return (

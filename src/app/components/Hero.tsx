@@ -1,16 +1,13 @@
 import Link from "next/link";
+import { getHeroCopy } from "@/lib/queries/settings";
 
-export default function Hero() {
+export default async function Hero() {
+  const { title, subtitle } = await getHeroCopy();
   return (
     <section className="py-12 sm:py-20 border-b border-line">
       <div className="mx-auto max-w-screen-md px-4">
-        <h1 className="text-5xl sm:text-7xl font-semibold leading-tight tracking-tight">
-          Baked fresh. Boldly simple.
-        </h1>
-        <p className="mt-4 text-neutral-700 text-base sm:text-lg max-w-prose">
-          Small-batch, made-to-order bakes. Choose your favorites, pick a date,
-          and confirm in one tap via WhatsApp.
-        </p>
+        <h1 className="text-5xl sm:text-7xl font-semibold leading-tight tracking-tight">{title}</h1>
+        <p className="mt-4 text-neutral-700 text-base sm:text-lg max-w-prose">{subtitle}</p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href="#products"
