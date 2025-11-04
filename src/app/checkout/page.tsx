@@ -3,7 +3,6 @@ import CheckoutForm from "@/app/components/CheckoutForm";
 import { getSupabase } from "@/lib/supabase/server";
 import { fetchProductBySlug } from "@/lib/queries/products";
 import { formatIDR } from "@/lib/types";
-import { WA_NUMBER } from "@/lib/env";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
@@ -102,25 +101,7 @@ async function placeOrder(_: unknown, formData: FormData): Promise<ServerResult>
   }
 
   // Build WhatsApp message
-  const lines = validated
-    .map((v) => `${v.qty}× ${v.name} — ${formatIDR(v.price * v.qty)}`)
-    .join("\n");
-
-  const msg = [
-    `Order ${orderRow.code}`,
-    lines,
-    `Total: ${formatIDR(total)}`,
-    `Name: ${name}`,
-    `Phone: ${phone}`,
-    `Address: ${address}`,
-    notes ? `Notes: ${notes}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  const number = String(WA_NUMBER || "+6281111111").replace(/[^\d]/g, "");
-  const waBase = number ? `https://wa.me/${number}` : "https://wa.me";
-  const waUrl = `${waBase}?text=${encodeURIComponent(msg)}`;
+  // (removed per instructions)
 
   redirect(`/order/${orderRow.code as string}`);
 }

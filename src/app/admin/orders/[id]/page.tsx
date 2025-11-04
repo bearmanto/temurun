@@ -47,11 +47,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         <div className="rounded border bg-card p-4">
           <div className="font-medium mb-2">Items</div>
           <ul className="divide-y">
-            {order.items.map((it) => (
-              <li key={it.id} className="flex items-center justify-between py-2">
+            {order.items.map((it, i) => (
+              <li key={it.id || `${it.name}-${i}`} className="flex items-center justify-between py-2">
                 <div className="text-sm">
                   {it.qty}× {it.name}
-                  <div className="text-xs text-neutral-600">{it.slug}</div>
+                  {it.slug ? (
+                    <div className="text-xs text-neutral-600">{it.slug}</div>
+                  ) : null}
                 </div>
                 <div className="text-sm font-medium">{formatIDR(it.price * it.qty)}</div>
               </li>

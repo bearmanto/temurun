@@ -4,41 +4,9 @@ import { getOrderByCode } from "@/lib/queries/orders";
 import { formatIDR } from "@/lib/types";
 import { getWaNumber } from "@/lib/queries/settings";
 import ConfirmWhatsAppButton from "@/app/components/ConfirmWhatsAppButton";
+import { buildOrderMessage, buildWaUrl } from "@/lib/whatsapp";
 
 type Params = { code: string };
-
-function buildWhatsAppUrl(
-  order: {
-    code: string;
-    items: { name: string; price: number; qty: number }[];
-    total: number;
-    customer_name: string;
-    phone: string;
-    address: string;
-    notes?: string;
-  },
-  waNumber: string
-) {
-  const lines = order.items
-    .map((it) => `${it.qty}× ${it.name} — ${formatIDR(it.price * it.qty)}`)
-    .join("\n");
-
-  const msg = [
-    `Order ${order.code}`,
-    lines,
-    `Total: ${formatIDR(order.total)}`,
-    `Name: ${order.customer_name}`,
-    `Phone: ${order.phone}`,
-    `Address: ${order.address}`,
-    order.notes ? `Notes: ${order.notes}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  const number = String(waNumber || "+6281111111").replace(/[^\d]/g, "");
-  const waBase = number ? `https://wa.me/${number}` : "https://wa.me";
-  return `${waBase}?text=${encodeURIComponent(msg)}`;
-}
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { code } = await params;
@@ -51,19 +19,18 @@ export default async function OrderSummaryPage({ params }: { params: Promise<Par
 
   if (!order) return notFound();
 
+  const msg = buildOrderMessage({
+    code: order.code,
+    items: order.items.map((it) => ({ name: it.name, price: it.price, qty: it.qty })),
+    total: order.total,
+    customer_name: order.customer_name,
+    phone: order.phone,
+    address: order.address,
+    notes: order.notes,
+  });
+
   const waNumber = await getWaNumber();
-  const waUrl = buildWhatsAppUrl(
-    {
-      code: order.code,
-      items: order.items.map((it) => ({ name: it.name, price: it.price, qty: it.qty })),
-      total: order.total,
-      customer_name: order.customer_name,
-      phone: order.phone,
-      address: order.address,
-      notes: order.notes,
-    },
-    waNumber
-  );
+  const waUrl = buildWaUrl(waNumber, msg);
 
   return (
     <section className="space-y-6">
@@ -76,8 +43,8 @@ export default async function OrderSummaryPage({ params }: { params: Promise<Par
         <div className="rounded border p-4 bg-card">
           <div className="font-medium mb-2">Items</div>
           <ul className="divide-y">
-            {order.items.map((it) => (
-              <li key={it.id} className="flex items-center justify-between py-2">
+            {order.items.map((it, i) => (
+              <li key={it.id || `${it.name}-${i}`} className="flex items-center justify-between py-2">
                 <div className="text-sm">
                   {it.qty}× {it.name}
                 </div>
