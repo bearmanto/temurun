@@ -15,6 +15,10 @@ export async function updateOrderStatus(formData: FormData) {
   const nextStatus = rawNext === "canceled" ? "cancelled" : rawNext; // normalize
   const note = String(formData.get("note") || "").slice(0, 500);
 
+  if (nextStatus === "cancelled" && !note.trim()) {
+    redirect(`/admin/orders/${orderId}?err=${encodeURIComponent("Cancellation requires a note")}`);
+  }
+
   if (!orderId || !nextStatus) {
     redirect(`/admin/orders/${orderId}?err=${encodeURIComponent("Missing order_id or next_status")}`);
   }

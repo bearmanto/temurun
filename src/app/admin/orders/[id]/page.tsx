@@ -5,6 +5,7 @@ import { getOrderById, getOrderEvents } from "@/lib/queries/orders";
 import { formatIDR } from "@/lib/types";
 import { updateOrderStatus } from "./actions";
 import Toast from "@/app/components/Toast";
+import CancelDialog from "./CancelDialog";
 
 type Params = { id: string };
 
@@ -100,15 +101,8 @@ export default async function AdminOrderDetailPage({
           </div>
 
           <hr />
-          {/* Quick actions */}
-          <form action={updateOrderStatus} className="flex flex-wrap gap-2 pt-1">
-            <input type="hidden" name="order_id" value={order.id} />
-            <input
-              type="text"
-              name="note"
-              placeholder="Note (optional)"
-              className="min-w-[220px] rounded border px-2 py-1 text-sm"
-            />
+          {/* Quick actions (no outer form to avoid nested forms) */}
+          <div className="flex flex-wrap gap-2 pt-1">
             {(() => {
               const current = String(order.status || "").toLowerCase();
               const nextMap: Record<string, string> = {
@@ -121,29 +115,24 @@ export default async function AdminOrderDetailPage({
               return (
                 <>
                   {next ? (
-                    <button
-                      type="submit"
-                      name="next_status"
-                      value={next}
-                      className="inline-flex items-center rounded border border-brand px-3 py-1 text-sm text-brand hover:bg-brand hover:text-white"
-                    >
-                      Mark {next.replaceAll("_", " ")}
-                    </button>
+                    <form action={updateOrderStatus} className="inline">
+                      <input type="hidden" name="order_id" value={order.id} />
+                      <input type="hidden" name="next_status" value={next} />
+                      <button
+                        type="submit"
+                        className="inline-flex items-center rounded border border-brand px-3 py-1 text-sm text-brand hover:bg-brand hover:text-white"
+                      >
+                        Mark {next.replaceAll("_", " ")}
+                      </button>
+                    </form>
                   ) : null}
                   {current !== "delivered" && current !== "cancelled" ? (
-                    <button
-                      type="submit"
-                      name="next_status"
-                      value="cancelled"
-                      className="inline-flex items-center rounded border border-red-600 px-3 py-1 text-sm text-red-600 hover:bg-red-600 hover:text-white"
-                    >
-                      Cancel
-                    </button>
+                    <CancelDialog orderId={order.id} />
                   ) : null}
                 </>
               );
             })()}
-          </form>
+          </div>
 
           {/* Manual change */}
           <form action={updateOrderStatus} className="space-y-2">
