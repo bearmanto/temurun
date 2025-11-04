@@ -1,23 +1,22 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Product } from "@/lib/types";
 import { formatIDR } from "@/lib/types";
 
 export default function ProductCard({ product }: { product: Product }) {
+  const src = product.image && product.image.trim() ? product.image : "/placeholders/product.svg";
+
   return (
     <article className="group overflow-hidden rounded border bg-card">
-      <div className="relative">
-        {/* Image (or placeholder) */}
-        {product.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={product.image}
-            alt={product.name}
-            className="aspect-square w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="aspect-square w-full bg-neutral-100" aria-hidden="true" />
-        )}
+      <div className="relative aspect-square w-full bg-neutral-100">
+        <Image
+          src={src}
+          alt={product.name}
+          fill
+          sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 100vw"
+          className="object-cover"
+          priority={false}
+        />
 
         {product.is_new && (
           <span className="absolute left-2 top-2 rounded-full bg-brand/90 px-2 py-0.5 text-xs text-white">

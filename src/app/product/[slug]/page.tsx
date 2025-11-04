@@ -4,6 +4,7 @@ import { listSlugs, fetchProductBySlug } from "@/lib/queries/products";
 import { formatIDR } from "@/lib/types";
 import ProductGallery from "@/app/components/ProductGallery";
 import AddToCart from "@/app/components/AddToCart";
+import { productJsonLd, absoluteUrl, SITE_NAME } from "@/lib/seo";
 
 type Params = { slug: string };
 
@@ -15,10 +16,26 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
   const product = await fetchProductBySlug(slug);
-  if (!product) return { title: "Product — Temurun" };
+  const title = product ? `${product.name} — ${SITE_NAME}` : `Product — ${SITE_NAME}`;
+  const description = product?.description || "";
+  const url = absoluteUrl(`/product/${slug}`);
+  const images = (product?.images || []).map(absoluteUrl);
+
   return {
-    title: `${product.name} — Temurun`,
-    description: product.description,
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      url,
+      title,
+      description,
+      images: images.length ? images : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   };
 }
 
@@ -27,8 +44,18 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
   const product = await fetchProductBySlug(slug);
   if (!product) return notFound();
 
+  const jsonLd = productJsonLd({
+    name: product.name,
+    description: product.description,
+    slug: product.slug,
+    price: product.price,
+    currency: "IDR",
+    images: product.images,
+  });
+
   return (
     <section className="py-6">
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <div className="mx-auto max-w-screen-md px-4">
         <div className="grid gap-6 sm:grid-cols-2">
           <ProductGallery images={product.images} name={product.name} />

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Product image placeholder</title>
+  <desc id="desc">A simple outlined illustration of a loaf to represent a product image, on a soft off-white card.</desc>
+
+  <!-- Card background -->
+  <rect x="40" y="40" width="1120" height="1120" rx="48" fill="#FAF8F5"/>
+  <rect x="40.5" y="40.5" width="1119" height="1119" rx="47.5" stroke="#E9E5DE"/>
+
+  <!-- Minimal “loaf” illustration (uses currentColor for strokes so it adapts to theme) -->
+  <g stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Loaf body -->
+    <path d="M280 760c0-170 160-260 320-260s320 90 320 260v140H280V760z" fill="none"/>
+    <!-- Scoring lines -->
+    <path d="M420 690c90-70 270-70 360 0" />
+    <path d="M480 760c70-40 170-40 240 0" />
+    <!-- Base shadow -->
+    <path d="M320 920h560" opacity=".25"/>
+  </g>
+
+  <!-- Subtle corner hatch (texture) -->
+  <g stroke="#EDEAE4" stroke-width="8" opacity=".65">
+    <path d="M100 1040l120-120M160 1080l160-160M220 1120l200-200" />
+  </g>
+</svg>
