@@ -4,7 +4,7 @@ import { listSlugs, fetchProductBySlug } from "@/lib/queries/products";
 import { formatIDR } from "@/lib/types";
 import ProductGallery from "@/app/components/ProductGallery";
 import AddToCart from "@/app/components/AddToCart";
-import { productJsonLd, absoluteUrl, SITE_NAME } from "@/lib/seo";
+import { productJsonLd, absoluteUrl, SITE_NAME, breadcrumbJsonLd, DEFAULT_DESCRIPTION } from "@/lib/seo";
 
 type Params = { slug: string };
 
@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { slug } = await params;
   const product = await fetchProductBySlug(slug);
   const title = product ? `${product.name} — ${SITE_NAME}` : `Product — ${SITE_NAME}`;
-  const description = product?.description || "";
+  const description = product?.description || DEFAULT_DESCRIPTION;
   const url = absoluteUrl(`/product/${slug}`);
   const images = (product?.images || []).map(absoluteUrl);
 
@@ -53,9 +53,15 @@ export default async function ProductPage({ params }: { params: Promise<Params> 
     images: product.images,
   });
 
+  const breadcrumbLd = breadcrumbJsonLd([
+    { name: "Home", item: "/" },
+    { name: product.name, item: `/product/${product.slug}` },
+  ]);
+
   return (
     <section className="py-6">
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLd }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: breadcrumbLd }} />
       <div className="mx-auto max-w-screen-md px-4">
         <div className="grid gap-6 sm:grid-cols-2">
           <ProductGallery images={product.images} name={product.name} />

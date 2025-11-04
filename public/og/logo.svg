@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Temurun logo</title>
+  <desc id="desc">Circular monogram badge with a simple bread loaf line drawing; strokes use currentColor so it adapts to light or dark themes.</desc>
+
+  <!-- Badge outline -->
+  <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="10" />
+
+  <!-- Minimal loaf illustration -->
+  <g stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Loaf body -->
+    <path d="M48 112c0-28 26-43 48-43s48 15 48 43v24H48z" />
+    <!-- Scoring lines -->
+    <path d="M64 102c18-12 50-12 68 0" />
+    <path d="M76 116c14-8 30-8 44 0" />
+  </g>
+</svg>

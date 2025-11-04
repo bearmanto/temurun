@@ -82,3 +82,19 @@ export function productJsonLd(p: ProductSeoInput): string {
   };
   return JSON.stringify(data);
 }
+
+export type BreadcrumbItem = { name: string; item: string };
+
+export function breadcrumbJsonLd(crumbs: BreadcrumbItem[]): string {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: c.name,
+      item: absoluteUrl(c.item),
+    })),
+  };
+  return JSON.stringify(data);
+}

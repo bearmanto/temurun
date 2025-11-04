@@ -1,103 +1,9 @@
-import { formatIDR } from "@/lib/types";
 import { getSupabase } from "@/lib/supabase/server";
 import { getAdminSupabase } from "@/lib/supabase/admin";
 
-/**
- * WhatsApp requires numbers in international format without '+', dashes, spaces, or brackets.
- * This keeps only digits so "+62 811-111-111" -> "62811111111".
- */
-export function normalizePhoneForWa(input: string): string {
-  return String(input || "").replace(/[^\d]/g, "");
-}
-
-export type OrderMessageInput = {
-  code: string;
-  items: { name: string; price: number; qty: number }[];
-  total: number;
-  customer_name: string;
-  phone: string;
-  address: string;
-  notes?: string | null;
-};
-
-/** Build a readable multi-line message for WhatsApp from an order. */
-export function buildOrderMessage(o: OrderMessageInput): string {
-  const lines = (o.items || [])
-    .map((it) => `${it.qty}× ${it.name} — ${formatIDR((it.price || 0) * (it.qty || 0))}`)
-    .join("\n");
-
-  return [
-    `Order ${o.code}`,
-    lines,
-    `Total: ${formatIDR(o.total || 0)}`,
-    `Name: ${o.customer_name}`,
-    `Phone: ${o.phone}`,
-    `Address: ${o.address}`,
-    o.notes ? `Notes: ${o.notes}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
-/** Build a wa.me URL with a prefilled message */
-export function buildWaUrl(rawNumber: string, message: string): string {
-  const number = normalizePhoneForWa(rawNumber);
-  const base = number ? `https://wa.me/${number}` : "https://wa.me";
-  return `${base}?text=${encodeURIComponent(message || "")}`;
-}
-
-export type NormalizedOrder = {
-  code: string;
-  subtotal: number;
-  total: number;
-  customer_name: string;
-  phone: string;
-  address: string;
-  notes: string | null;
-  items: { id: string; name: string; price: number; qty: number }[];
-};
-
-export async function getOrderByCode(code: string): Promise<NormalizedOrder | null> {
-  const sb = getAdminSupabase() || getSupabase();
-  if (!sb) return null;
-
-  // 1) Fetch order by public code
-  const { data: orderRow, error: orderErr } = await sb
-    .from("orders")
-    .select("id, code, total, customer_name, phone, address, notes")
-    .eq("code", code)
-    .maybeSingle();
-
-  if (orderErr || !orderRow) return null;
-
-  // 2) Fetch items for that order
-  const { data: itemRows } = await sb
-    .from("order_items")
-    .select("id, name, price, qty")
-    .eq("order_id", orderRow.id);
-
-  const items = (itemRows || []).map((r: any) => ({
-    id: String(r.id || ""),
-    name: String(r.name || ""),
-    price: Number(r.price || 0),
-    qty: Number(r.qty || 0),
-  }));
-
-  const subtotal = items.reduce((sum: number, it: any) => sum + it.price * it.qty, 0);
-
-  return {
-    code: String(orderRow.code),
-    subtotal,
-    total: Number(orderRow.total || 0),
-    customer_name: String(orderRow.customer_name || ""),
-    phone: String(orderRow.phone || ""),
-    address: String(orderRow.address || ""),
-    notes: (orderRow as any).notes ?? null,
-    items,
-  };
-}
-
-
+// ────────────────────────────────────────────────────────────────────────────────
+// Types
+// ────────────────────────────────────────────────────────────────────────────────
 export type AdminOrderSummary = {
   id: string;
   created_at: string;
@@ -106,29 +12,6 @@ export type AdminOrderSummary = {
   total: number;
   status: string;
 };
-
-/** List recent orders for Admin (RLS-safe via service role on the server). */
-export async function listOrders(limit = 200): Promise<AdminOrderSummary[]> {
-  const sb = getAdminSupabase() || getSupabase();
-  if (!sb) return [];
-
-  const { data, error } = await sb
-    .from("orders")
-    .select("id, created_at, code, customer_name, total, status")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (error || !data) return [];
-
-  return data.map((r: any) => ({
-    id: String(r.id),
-    created_at: String(r.created_at),
-    code: String(r.code || ""),
-    customer_name: String(r.customer_name || ""),
-    total: Number(r.total || 0),
-    status: String(r.status || "")
-  }));
-}
 
 export type AdminOrderDetail = {
   id: string;
@@ -144,11 +27,71 @@ export type AdminOrderDetail = {
   items: { id: string; name: string; price: number; qty: number; slug?: string }[];
 };
 
-export async function getOrderById(id: string): Promise<AdminOrderDetail | null> {
-  const sb = getAdminSupabase() || getSupabase();
-  if (!sb) return null;
+export type NormalizedOrder = {
+  code: string;
+  subtotal: number;
+  total: number;
+  customer_name: string;
+  phone: string;
+  address: string;
+  notes: string | null;
+  items: { id: string; name: string; price: number; qty: number }[];
+};
 
-  const { data: orderRow, error: orderErr } = await sb
+// Prefer service-role on server (admin) and fall back to request-bound when available
+function sb() {
+  return getAdminSupabase() || getSupabase();
+}
+
+// ────────────────────────────────────────────────────────────────────────────────
+// Queries
+// ────────────────────────────────────────────────────────────────────────────────
+export async function listOrders(
+  opts: { status?: string; q?: string; limit?: number } = {}
+): Promise<AdminOrderSummary[]> {
+  const { status, q, limit = 200 } = opts;
+  const client = sb();
+  if (!client) return [];
+
+  let query = client
+    .from("orders")
+    .select("id, created_at, code, customer_name, total, status")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (status && status !== "all") {
+    const s = status.toLowerCase();
+    if (s === "canceled" || s === "cancelled") {
+      query = query.in("status", ["cancelled", "canceled"]);
+    } else {
+      query = query.eq("status", s);
+    }
+  }
+
+  const term = (q || "").trim();
+  if (term) {
+    // Match code OR customer_name
+    query = query.or(`code.ilike.%${term}%,customer_name.ilike.%${term}%`);
+  }
+
+  const { data, error } = await query;
+  if (error || !data) return [];
+
+  return (data as any[]).map((r) => ({
+    id: String(r.id),
+    created_at: String(r.created_at),
+    code: String(r.code || ""),
+    customer_name: String(r.customer_name || ""),
+    total: Number(r.total || 0),
+    status: String(r.status || ""),
+  }));
+}
+
+export async function getOrderById(id: string): Promise<AdminOrderDetail | null> {
+  const client = sb();
+  if (!client) return null;
+
+  const { data: orderRow, error: orderErr } = await client
     .from("orders")
     .select("id, code, created_at, status, total, customer_name, phone, address, notes")
     .eq("id", id)
@@ -156,32 +99,92 @@ export async function getOrderById(id: string): Promise<AdminOrderDetail | null>
 
   if (orderErr || !orderRow) return null;
 
-  const { data: itemRows } = await sb
+  const { data: itemRows } = await client
     .from("order_items")
     .select("id, name, price, qty")
-    .eq("order_id", orderRow.id);
+    .eq("order_id", (orderRow as any).id);
 
-  const items = (itemRows || []).map((r: any) => ({
+  const items = ((itemRows as any[]) || []).map((r) => ({
     id: String(r.id || ""),
     name: String(r.name || ""),
     price: Number(r.price || 0),
     qty: Number(r.qty || 0),
-    // slug not guaranteed in schema; omit or leave empty string
   }));
 
   const subtotal = items.reduce((sum, it) => sum + it.price * it.qty, 0);
 
   return {
-    id: String(orderRow.id),
-    code: String(orderRow.code || ""),
-    created_at: String(orderRow.created_at || ""),
-    status: String(orderRow.status || "pending"),
+    id: String((orderRow as any).id),
+    code: String((orderRow as any).code || ""),
+    created_at: String((orderRow as any).created_at || ""),
+    status: String((orderRow as any).status || "pending"),
     subtotal,
-    total: Number(orderRow.total || subtotal || 0),
-    customer_name: String(orderRow.customer_name || ""),
-    phone: String(orderRow.phone || ""),
-    address: String(orderRow.address || ""),
+    total: Number((orderRow as any).total ?? subtotal ?? 0),
+    customer_name: String((orderRow as any).customer_name || ""),
+    phone: String((orderRow as any).phone || ""),
+    address: String((orderRow as any).address || ""),
     notes: (orderRow as any).notes ?? null,
     items,
   };
+}
+
+export async function getOrderByCode(code: string): Promise<NormalizedOrder | null> {
+  const client = sb();
+  if (!client) return null;
+
+  const { data: orderRow, error: orderErr } = await client
+    .from("orders")
+    .select("id, code, total, customer_name, phone, address, notes")
+    .eq("code", code)
+    .maybeSingle();
+
+  if (orderErr || !orderRow) return null;
+
+  const { data: itemRows } = await client
+    .from("order_items")
+    .select("id, name, price, qty")
+    .eq("order_id", (orderRow as any).id);
+
+  const items = ((itemRows as any[]) || []).map((r) => ({
+    id: String(r.id || ""),
+    name: String(r.name || ""),
+    price: Number(r.price || 0),
+    qty: Number(r.qty || 0),
+  }));
+
+  const subtotal = items.reduce((sum, it) => sum + it.price * it.qty, 0);
+
+  return {
+    code: String((orderRow as any).code),
+    subtotal,
+    total: Number((orderRow as any).total ?? subtotal ?? 0),
+    customer_name: String((orderRow as any).customer_name || ""),
+    phone: String((orderRow as any).phone || ""),
+    address: String((orderRow as any).address || ""),
+    notes: (orderRow as any).notes ?? null,
+    items,
+  };
+}
+
+export type OrderStatusEvent = {
+  from_status: string | null;
+  to_status: string;
+  note: string | null;
+  created_at: string;
+};
+
+export async function getOrderEvents(orderId: string): Promise<OrderStatusEvent[]> {
+  const client = sb();
+  if (!client) return [];
+  const { data } = await client
+    .from("order_status_events")
+    .select("from_status,to_status,note,created_at")
+    .eq("order_id", orderId)
+    .order("created_at", { ascending: false });
+  return ((data as any[]) || []).map((r) => ({
+    from_status: r.from_status ?? null,
+    to_status: r.to_status,
+    note: r.note ?? null,
+    created_at: String(r.created_at || ""),
+  }));
 }

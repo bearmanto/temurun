@@ -1,11 +1,25 @@
 import { ImageResponse } from "next/og";
+import { fetchProductBySlug } from "@/lib/queries/products";
+import { formatIDR } from "@/lib/types";
 import { absoluteUrl } from "@/lib/seo";
 
-export const alt = "Temurun — Open Graph image";
+export const alt = "Product — Open Graph image";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default async function Image() {
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const product = await fetchProductBySlug(slug);
+
+  const title = product?.name ?? "Product";
+  const price = product ? formatIDR(product.price) : "";
+  const first = (product as any)?.images?.[0];
+  const img = first ? absoluteUrl(first) : absoluteUrl("/placeholders/product.svg");
+
   return new ImageResponse(
     (
       <div
@@ -24,8 +38,7 @@ export default async function Image() {
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
-            gap: 16,
+            gap: 32,
             width: 1024,
             padding: 48,
             borderRadius: 24,
@@ -33,8 +46,17 @@ export default async function Image() {
             border: "1px solid #E9E5DE",
           }}
         >
-          <div style={{ fontSize: 84, fontWeight: 700 }}>Temurun</div>
-          <div style={{ fontSize: 36, opacity: 0.8 }}>Fresh bakes, simple checkout.</div>
+          <img
+            src={img}
+            width={540}
+            height={540}
+            alt=""
+            style={{ borderRadius: 16, objectFit: "cover", background: "#eee" }}
+          />
+          <div style={{ display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>
+            <div style={{ fontSize: 64, fontWeight: 700 }}>{title}</div>
+            {price ? <div style={{ fontSize: 40 }}>{price}</div> : null}
+          </div>
         </div>
         <img
           src={absoluteUrl("/og/logo.svg")}
