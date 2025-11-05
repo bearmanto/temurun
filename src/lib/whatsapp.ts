@@ -1,11 +1,20 @@
 import { formatIDR } from "@/lib/types";
 
 /**
- * WhatsApp requires numbers in international format without '+', dashes, spaces, or brackets.
- * This keeps only digits so "+62 811-111-111" -> "62811111111".
+ * WhatsApp Click to Chat uses `https://wa.me/<number>?text=...`.
+ * Number must be in international format (E.164-like): digits only, no '+', spaces, dashes, or brackets,
+ * 8–15 digits max. See WhatsApp docs + ITU E.164.
  */
 export function normalizePhoneForWa(input: string): string {
   return String(input || "").replace(/[^\d]/g, "");
+}
+
+/** E.164-like check: 8–15 digits, cannot start with 0. */
+const E164_LIKE = /^[1-9]\d{7,14}$/;
+
+export function isLikelyValidWaNumber(input: string): boolean {
+  const n = normalizePhoneForWa(input);
+  return E164_LIKE.test(n);
 }
 
 export type OrderMessageInput = {
@@ -37,9 +46,14 @@ export function buildOrderMessage(o: OrderMessageInput): string {
     .join("\n");
 }
 
-/** Build a wa.me URL with a prefilled message */
+/** Build a wa.me URL with a prefilled message (URL-encoded). */
 export function buildWaUrl(rawNumber: string, message: string): string {
   const number = normalizePhoneForWa(rawNumber);
-  const base = number ? `https://wa.me/${number}` : "https://wa.me";
-  return `${base}?text=${encodeURIComponent(message || "")}`;
+  const encoded = encodeURIComponent(message || "");
+  // Only include phone segment if it looks valid by E.164 rules (digits-only, 8–15, no leading 0)
+  if (E164_LIKE.test(number)) {
+    return `https://wa.me/${number}?text=${encoded}`;
+  }
+  // Fallback: omit phone segment (lets WhatsApp/Web prompt the user). Still prefill text.
+  return `https://wa.me?text=${encoded}`;
 }
