@@ -67,15 +67,15 @@ export default async function AdminOrdersPage({
       {orders.length === 0 ? (
         <p className="text-neutral-600">No orders yet.</p>
       ) : (
-        <div className="overflow-x-auto rounded border">
+        <div className="max-h-[70vh] overflow-x-auto overflow-y-auto rounded border">
           <table className="min-w-full text-sm">
             <thead className="bg-neutral-50 text-neutral-700">
               <tr>
-                <th className="px-3 py-2 text-left">Date</th>
-                <th className="px-3 py-2 text-left">Code</th>
-                <th className="px-3 py-2 text-left">Customer</th>
-                <th className="px-3 py-2 text-right">Total</th>
-                <th className="px-3 py-2 text-left">Status</th>
+                <th className="sticky top-0 z-10 bg-neutral-50 px-3 py-2 text-left">Date</th>
+                <th className="sticky top-0 z-10 bg-neutral-50 px-3 py-2 text-left">Code</th>
+                <th className="sticky top-0 z-10 bg-neutral-50 px-3 py-2 text-left">Customer</th>
+                <th className="sticky top-0 z-10 bg-neutral-50 px-3 py-2 text-right">Total</th>
+                <th className="sticky top-0 z-10 bg-neutral-50 px-3 py-2 text-left">Status</th>
               </tr>
             </thead>
             <tbody>

@@ -33,6 +33,8 @@ export default function AdminHeader() {
           <span aria-hidden className="text-neutral-300">·</span>
           <NavItem href="/admin/products">Products</NavItem>
           <span aria-hidden className="text-neutral-300">·</span>
+          <NavItem href="/admin/analytics">Analytics</NavItem>
+          <span aria-hidden className="text-neutral-300">·</span>
           <NavItem href="/admin/settings">Settings</NavItem>
           <span aria-hidden className="text-neutral-300">·</span>
           <Link href="/admin/sign-out" className="px-2.5 py-1.5 rounded text-neutral-700 hover:text-brand">

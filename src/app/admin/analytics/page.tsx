@@ -1,17 +1,26 @@
 import { getAnalytics } from "@/lib/queries/analytics";
 import { formatIDR } from "@/lib/types";
+import { monthRangeFromParamsJKT, presetRangeJKT } from "@/lib/time";
 
 // Next 16: Dynamic APIs (searchParams) are async — accept a Promise and await it.
 // https://nextjs.org/docs/messages/sync-dynamic-apis
 export default async function AdminAnalyticsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ from?: string; to?: string }>;
+  searchParams: Promise<{ from?: string; to?: string; preset?: string; sort?: string }>;
 }) {
   const sp = await searchParams;
-  const { fromISO, toISO, fromMonth, toMonth } = monthRangeFromParams(sp.from, sp.to);
+  const sort = sp?.sort === "qty" ? "qty" : "revenue";
+
+  const usePreset = !!sp?.preset;
+  const { fromISO, toISO, fromMonth, toMonth } = usePreset
+    ? presetRangeJKT(sp!.preset)
+    : monthRangeFromParamsJKT(sp!.from, sp!.to);
 
   const data = await getAnalytics({ fromISO, toISO });
+  const topProducts = [...data.topProducts].sort((a, b) =>
+    sort === "qty" ? b.qty - a.qty : b.revenue - a.revenue
+  );
 
   return (
     <section className="space-y-6">
@@ -19,8 +28,26 @@ export default async function AdminAnalyticsPage({
         <div>
           <h1 className="text-xl font-semibold">Analytics</h1>
           <p className="text-sm text-neutral-600">
-            {fromMonth} → {toMonth} (UTC ISO range)
+            {fromMonth} → {toMonth} (Asia/Jakarta)
           </p>
+        </div>
+        <div className="flex flex-wrap items-end gap-2">
+          {/* Presets */}
+          <a href={`/admin/analytics?preset=this-month&sort=${sort}`} className="rounded border px-2 py-1 text-sm">This month</a>
+          <a href={`/admin/analytics?preset=last-month&sort=${sort}`} className="rounded border px-2 py-1 text-sm">Last month</a>
+          <a href={`/admin/analytics?preset=last-30-days&sort=${sort}`} className="rounded border px-2 py-1 text-sm">Last 30 days</a>
+          {/* Sort toggle */}
+          <span className="mx-1 text-neutral-400">|</span>
+          {(() => {
+            const base = sp?.preset ? `?preset=${encodeURIComponent(sp.preset || "")}` : `?from=${fromMonth}&to=${toMonth}`;
+            return (
+              <span className="text-sm">
+                Sort:
+                <a href={`/admin/analytics${base}&sort=revenue`} className={`ml-2 rounded border px-2 py-1 ${sort === "revenue" ? "bg-black text-white" : ""}`}>Revenue</a>
+                <a href={`/admin/analytics${base}&sort=qty`} className={`ml-2 rounded border px-2 py-1 ${sort === "qty" ? "bg-black text-white" : ""}`}>Qty</a>
+              </span>
+            );
+          })()}
         </div>
         <form method="get" action="/admin/analytics" className="flex flex-wrap items-end gap-2">
           <div className="flex flex-col">
@@ -31,6 +58,7 @@ export default async function AdminAnalyticsPage({
             <label htmlFor="to" className="text-xs text-neutral-600">To</label>
             <input id="to" name="to" type="month" defaultValue={toMonth} className="rounded border px-2 py-1" />
           </div>
+          <input type="hidden" name="sort" value={sort} />
           <button className="rounded bg-black px-3 py-1 text-white" type="submit">Apply</button>
         </form>
       </header>
@@ -69,8 +97,8 @@ export default async function AdminAnalyticsPage({
 
       {/* Top products */}
       <div className="rounded border bg-white p-4">
-        <div className="mb-2 font-medium">Top products (by revenue)</div>
-        {data.topProducts.length === 0 ? (
+        <div className="mb-2 font-medium">Top products (by {sort === "qty" ? "quantity" : "revenue"})</div>
+        {topProducts.length === 0 ? (
           <div className="text-sm text-neutral-600">No items sold in this range.</div>
         ) : (
           <table className="w-full table-fixed text-sm">
@@ -82,7 +110,7 @@ export default async function AdminAnalyticsPage({
               </tr>
             </thead>
             <tbody>
-              {data.topProducts.map((p) => (
+              {topProducts.map((p) => (
                 <tr key={p.name} className="border-t">
                   <td className="px-2 py-1">{p.name}</td>
                   <td className="px-2 py-1">{p.qty}</td>
@@ -95,39 +123,6 @@ export default async function AdminAnalyticsPage({
       </div>
     </section>
   );
-}
-
-function monthRangeFromParams(from?: string, to?: string) {
-  const now = new Date();
-
-  const fromMonth = normalizeMonth(from) || fmtYYYYMM(new Date(now.getFullYear(), now.getMonth(), 1));
-  const toMonth = normalizeMonth(to) || fromMonth; // default to same month
-
-  const [fy, fm] = fromMonth.split("-").map((n) => parseInt(n, 10));
-  const [ty, tm] = toMonth.split("-").map((n) => parseInt(n, 10));
-
-  const fromDate = new Date(fy, fm - 1, 1);
-  const toDate = new Date(ty, tm - 1 + 1, 1); // first day of next month (exclusive)
-
-  return {
-    fromISO: fromDate.toISOString(),
-    toISO: toDate.toISOString(),
-    fromMonth,
-    toMonth,
-  };
-}
-
-function normalizeMonth(v?: string) {
-  if (!v) return "";
-  // expect YYYY-MM
-  const m = /^\d{4}-\d{2}$/.exec(v.trim());
-  return m ? v : "";
-}
-
-function fmtYYYYMM(d: Date) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  return `${y}-${m}`;
 }
 
 function Kpi({ title, value }: { title: string; value: string }) {
