@@ -10,9 +10,11 @@ export default function AdminLayout({
 }) {
   // Consistent container + header on every admin page
   return (
-    <div className="mx-auto max-w-screen-md px-4 py-6">
+    <div className="mx-auto max-w-screen-xl px-4 py-6">
       <AdminHeader />
-      <div className="pt-2">{children}</div>
+      <main id="main" tabIndex={-1} className="pt-2" role="main">
+        {children}
+      </main>
     </div>
   );
 }
