@@ -9,9 +9,9 @@ export default function Home() {
     <>
       <Hero />
       <UspBar />
-      <section id="products" className="space-y-3">
-        <div className="mx-auto max-w-screen-md px-4">
-          <h2 className="text-xl font-semibold">What’s fresh</h2>
+      <section id="products" className="space-y-4 py-6 sm:py-8">
+        <div className="mx-auto max-w-screen-xl px-4">
+          <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">What’s fresh</h2>
           <Suspense fallback={<ProductsSkeleton />}>
             {/* @ts-expect-error Async Server Component */}
             <ProductGrid />
